@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import LoginPage from '../pages/Login.tsx';
 import RegisterPage from '../pages/Register.tsx';
 import Dashboard from '../pages/Dashboard.tsx';
@@ -14,26 +14,46 @@ import { store } from '../features/store';
 import { ToastContainer } from 'react-toastify';
 import { queryClient } from '../config/query';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
+import ProtectedLayout from './ProtectedLayout.tsx';
+import { setLogoutCallback } from '../axios/axiosInstance.ts';
+import { checkAuthState } from '../features/auth/authSlice.ts';
 
 interface AuthCheckProps {
   requiredRoles?: string[];
   children: React.ReactNode;
 }
 
-/*const AuthCheck: React.FC<AuthCheckProps> = ({ requiredRoles, children }) => {
+const AuthCheck: React.FC<AuthCheckProps> = ({children }) => {
   const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" />;
   }
 
-  if (requiredRoles && (!user?.roles || !user.roles.some((role: any) => requiredRoles.includes(role.roleName)))) {
-    return <Navigate to="/not-allowed" />;
-  }
-
   return <>{children}</>;
-};*/
+};
 
+const ProtectedLayoutWrapper = () => {
+	const dispatch = useDispatch();
+	const { loading, isLoggedIn, user } = useSelector((state: RootState) => state.auth);
+
+	useEffect(() => {
+		const handleLogout = () => {
+			localStorage.removeItem('authState');
+			window.location.href = '/login';
+		};
+		
+		setLogoutCallback(handleLogout);
+		dispatch(checkAuthState() as any);
+	}, [dispatch]);
+
+	if (loading) {
+		return <div>Loading...</div>;
+	}
+
+	return <ProtectedLayout />;
+};
 
 export const router = createBrowserRouter([
   {
@@ -54,7 +74,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/dashboard",
-        element: <Dashboard />
+        element: <AuthCheck><Dashboard /></AuthCheck>
       },
       {
         path: "/auth/success",
@@ -84,3 +104,4 @@ const App = () => {
 };
 
 export default App; 
+
