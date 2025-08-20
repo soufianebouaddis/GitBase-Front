@@ -8,7 +8,7 @@ const rootReducer = {
 
 export const store = configureStore({
   reducer: rootReducer,
-  devTools: true
+  devTools: true // for development, must be disabled in production
 });
 
 export type RootState = ReturnType<typeof store.getState>;

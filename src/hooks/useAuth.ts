@@ -12,7 +12,7 @@ export const useAuth = () => {
 
   // Check auth state on mount
   useEffect(() => {
-    if (authService.isAuthenticated() && !user) {
+    if (!user) {
       dispatch(checkAuthState())
     }
   }, [dispatch, user])
@@ -29,17 +29,12 @@ export const useAuth = () => {
     dispatch(clearError())
   }
 
-  const isAuthenticated = () => {
-    return authService.isAuthenticated()
-  }
-
   return {
     user,
     isLoggedIn,
     loading,
     error,
     logout: logoutUser,
-    clearError: clearAuthError,
-    isAuthenticated,
+    clearError: clearAuthError
   }
 } 

@@ -11,10 +11,6 @@ const AuthContainer: React.FC = () => {
   const switchToRegister = () => setIsLogin(false);
   const switchToLogin = () => setIsLogin(true);
 
-  if (!GOOGLE_CLIENT_ID) {
-    console.warn('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.');
-  }
-
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="auth-container">

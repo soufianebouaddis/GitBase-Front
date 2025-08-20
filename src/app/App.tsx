@@ -24,7 +24,7 @@ interface AuthCheckProps {
   children: React.ReactNode;
 }
 
-const AuthCheck: React.FC<AuthCheckProps> = ({children }) => {
+const AuthCheck: React.FC<AuthCheckProps> = ({ children }) => {
   const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
 
   if (!isLoggedIn) {
@@ -35,34 +35,41 @@ const AuthCheck: React.FC<AuthCheckProps> = ({children }) => {
 };
 
 const ProtectedLayoutWrapper = () => {
-	const dispatch = useDispatch();
-	const { loading, isLoggedIn, user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+  const { loading, isLoggedIn, user } = useSelector((state: RootState) => state.auth);
 
-	useEffect(() => {
-		const handleLogout = () => {
-			localStorage.removeItem('authState');
-			window.location.href = '/login';
-		};
-		
-		setLogoutCallback(handleLogout);
-		dispatch(checkAuthState() as any);
-	}, [dispatch]);
+  useEffect(() => {
+    const handleLogout = () => {
+      localStorage.removeItem('authState');
+      window.location.href = '/login';
+    };
 
-	if (loading) {
-		return <div>Loading...</div>;
-	}
+    setLogoutCallback(handleLogout);
+    dispatch(checkAuthState() as any);
+  }, [dispatch]);
 
-	return <ProtectedLayout />;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return <ProtectedLayout />;
 };
 
 export const router = createBrowserRouter([
   {
     path: "/",
     errorElement: <Error code={404} message="Page Not Found" />,
+
     children: [
       {
         path: "/",
-        element: <Navigate to="/dashboard" replace />
+        element: <ProtectedLayoutWrapper />,
+        children: [
+          {
+            path: "/dashboard",
+            element: <AuthCheck><Dashboard /></AuthCheck>
+          }
+        ]
       },
       {
         path: "/login",
@@ -72,10 +79,7 @@ export const router = createBrowserRouter([
         path: "/register",
         element: <RegisterPage />
       },
-      {
-        path: "/dashboard",
-        element: <AuthCheck><Dashboard /></AuthCheck>
-      },
+
       {
         path: "/auth/success",
         element: <AuthSuccess />
@@ -103,5 +107,5 @@ const App = () => {
   );
 };
 
-export default App; 
+export default App;
 

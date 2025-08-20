@@ -2,91 +2,88 @@ import axios from 'axios';
 
 // Logout callback function
 let logoutCallback: (() => void) | null = null;
-
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: any) => void; reject: (error: any) => void }> = [];
 export const setLogoutCallback = (callback: (() => void) | null) => {
   logoutCallback = callback;
 };
+const processQueue = (error: any, token: any = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
 
+    failedQueue = [];
+};
+
+const clearAuthData = () => {
+    localStorage.removeItem('authState');
+    document.cookie.split(";").forEach((c) => {
+        const eqPos = c.indexOf("=");
+        const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+        document.cookie = name + "=;expires=Thu, 27 Juin 20250 GMT;path=/";
+    });
+};
 // Cookie utility functions
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-};
 
-const setCookie = (name: string, value: string, days: number = 7) => {
-  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax; Secure`;
-};
-
-const deleteCookie = (name: string) => {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax; Secure`;
-};
 
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8880/api/v1',
-  withCredentials: true, // Important for cookies
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token from cookies
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = getCookie('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Response interceptor to handle token refresh
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+    response => response,
+    async error => {
+        const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
+            if (originalRequest.url?.includes('/auth/refreshToken')) {
+                clearAuthData();
+                if (logoutCallback) {
+                    logoutCallback();
+                }
+                return Promise.reject(error);
+            }
 
-      try {
-        // Try to refresh the token
-        const refreshResponse = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8880/api'}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    return axiosInstance(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
 
-        const newToken = refreshResponse.data.data.accessToken;
-        if (newToken) {
-          setCookie('accessToken', newToken, 7);
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return axiosInstance(originalRequest);
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                await axiosInstance.post('/auth/refreshToken', {});
+                processQueue(null, 'token');
+                isRefreshing = false;
+                return axiosInstance(originalRequest);
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+                isRefreshing = false;
+                clearAuthData();
+                if (logoutCallback) {
+                    logoutCallback();
+                }
+                return Promise.reject(refreshError);
+            }
         }
-      } catch (refreshError) {
-        // Refresh failed, clear cookies and call logout callback
-        deleteCookie('accessToken');
-        deleteCookie('refreshToken');
-
-        if (logoutCallback) {
-          logoutCallback();
-        } else {
-          window.location.href = '/login';
-        }
-
-        return Promise.reject(refreshError);
-      }
+        return Promise.reject(error);
     }
-
-    return Promise.reject(error);
-  }
 );
 
 export default axiosInstance; 

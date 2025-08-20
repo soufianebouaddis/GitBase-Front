@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { login } from '../../features/auth/authSlice';
-import { authService } from '../../services/authService';
+import { googleLogin, login } from '../../features/auth/authSlice';
 import type { LoginDTO } from '../../types/auth';
 import type { AppDispatch } from '../../features/store';
 
@@ -50,7 +49,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     setIsGoogleLoading(true);
     try {
       // This will redirect to Google OAuth URL
-      await authService.initiateGoogleLogin();
+      await dispatch(googleLogin()).unwrap();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Google login failed');
       setIsGoogleLoading(false);
