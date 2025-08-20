@@ -18,6 +18,7 @@ import { useEffect } from 'react';
 import ProtectedLayout from './ProtectedLayout.tsx';
 import { setLogoutCallback } from '../axios/axiosInstance.ts';
 import { checkAuthState } from '../features/auth/authSlice.ts';
+import Home from '../pages/Home.tsx';
 
 interface AuthCheckProps {
   requiredRoles?: string[];
@@ -61,6 +62,10 @@ export const router = createBrowserRouter([
     errorElement: <Error code={404} message="Page Not Found" />,
 
     children: [
+      {
+        path: "/",
+        element: <Home />
+      },
       {
         path: "/",
         element: <ProtectedLayoutWrapper />,

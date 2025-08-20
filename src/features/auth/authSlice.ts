@@ -128,7 +128,7 @@ export const checkAuthState = createAsyncThunk(
         // Optionally verify the token/session is still valid on the server
         try {
           const response = await authService.getCurrentUser();
-          
+
           if (response) {
             return {
               isLoggedIn: true,
@@ -211,6 +211,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isLoggedIn = false;
         state.error = null;
+        localStorage.removeItem("authState");
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;

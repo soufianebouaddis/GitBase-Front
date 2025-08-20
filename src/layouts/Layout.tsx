@@ -34,17 +34,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [navigate, dispatch]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
-          <div className="p-6 max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <>
+      {children}
+    </>
   );
 };
 
