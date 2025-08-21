@@ -29,7 +29,7 @@ export const authService = {
       const response = await axiosInstance.post<ApiResponse<AuthResponse>>('/auth/register', userData);
       const authData = response.data.data;
 
-      
+
       return authData;
     } catch (error) {
       throw this.handleError(error);
@@ -78,6 +78,8 @@ export const authService = {
       const response = await axiosInstance.get<ApiResponse<UserInfo>>('/auth/profile-info');
       return response.data.data;
     } catch (error) {
+      // If there's an error, clear any stale auth state
+      localStorage.removeItem('authState');
       throw this.handleError(error);
     }
   },
@@ -89,7 +91,7 @@ export const authService = {
       const authData = response.data.data
       return authData;
     } catch (error) {
-    
+
       throw this.handleError(error);
     }
   },
@@ -101,7 +103,7 @@ export const authService = {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-     
+
     }
   },
 

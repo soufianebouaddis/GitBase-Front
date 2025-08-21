@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import LoginPage from '../pages/Login.tsx';
 import RegisterPage from '../pages/Register.tsx';
 import Dashboard from '../pages/Dashboard.tsx';
+import { NewRepository } from '../pages/NewRepository.tsx';
 import AuthSuccess from '../pages/AuthSuccess.tsx';
 import Error from '../components/Global/Error';
 import OAuthCallback from '../components/auth/OAuthCallback';
@@ -46,7 +47,16 @@ const ProtectedLayoutWrapper = () => {
     };
 
     setLogoutCallback(handleLogout);
-    dispatch(checkAuthState() as any);
+
+    // Only check with server on initial mount
+    dispatch(checkAuthState(false) as any);
+
+    // Set up a timer to validate session every 30 minutes
+    const interval = setInterval(() => {
+      dispatch(checkAuthState(true) as any);
+    }, 30 * 60 * 1000); // Check every 30 minutes
+
+    return () => clearInterval(interval);
   }, [dispatch]);
 
   if (loading) {
@@ -73,6 +83,10 @@ export const router = createBrowserRouter([
           {
             path: "/dashboard",
             element: <AuthCheck><Dashboard /></AuthCheck>
+          },
+          {
+            path: "/new",
+            element: <AuthCheck><NewRepository /></AuthCheck>
           }
         ]
       },

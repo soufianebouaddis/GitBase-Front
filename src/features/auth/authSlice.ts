@@ -115,36 +115,39 @@ export const getCurrentUser = createAsyncThunk(
 // Async thunk to check auth state on app start
 export const checkAuthState = createAsyncThunk(
   "auth/checkAuthState",
-  async (_, thunkAPI) => {
+  async (forceRefresh: boolean = false, thunkAPI) => {
     try {
+      // Try to get data from localStorage first
       const authState = localStorage.getItem("authState");
-      if (!authState) {
-        return thunkAPI.rejectWithValue("No auth state found");
-      }
-
-      const parsedState = JSON.parse(authState);
-
-      if (parsedState.isLoggedIn && parsedState.user) {
-        // Optionally verify the token/session is still valid on the server
-        try {
-          const response = await authService.getCurrentUser();
-
-          if (response) {
-            return {
-              isLoggedIn: true,
-              user: response
-            };
-          }
-        } catch (error) {
-          // If profile check fails, clear localStorage and reject
-          localStorage.removeItem("authState");
-          return thunkAPI.rejectWithValue("Session expirée");
+      if (authState && !forceRefresh) {
+        const parsedState = JSON.parse(authState);
+        if (parsedState.isLoggedIn && parsedState.user) {
+          return {
+            isLoggedIn: true,
+            user: parsedState.user
+          };
         }
       }
 
-      return parsedState;
+      // If no cached data or force refresh, verify with server
+      try {
+        const response = await authService.getCurrentUser();
+        if (response) {
+          return {
+            isLoggedIn: true,
+            user: response
+          };
+        }
+      } catch (error) {
+        localStorage.removeItem("authState");
+        return thunkAPI.rejectWithValue("Session expired");
+      }
+
+      localStorage.removeItem("authState");
+      return thunkAPI.rejectWithValue("No valid session found");
     } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to restore auth state");
+      localStorage.removeItem("authState");
+      return thunkAPI.rejectWithValue("Failed to verify auth state");
     }
   }
 );
@@ -243,9 +246,10 @@ const authSlice = createSlice({
       })
       .addCase(checkAuthState.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.isLoggedIn = true;
+        state.user = action.payload.user;
+        state.isLoggedIn = action.payload.isLoggedIn;
         state.error = null;
+        saveStateToLocalStorage(state);
       })
       .addCase(checkAuthState.rejected, (state) => {
         state.loading = false;

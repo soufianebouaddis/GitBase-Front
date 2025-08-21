@@ -20,7 +20,7 @@ const performLogout = async (): Promise<void> => {
     } catch (logoutError) {
         console.error('Logout request failed:', logoutError);
     }
-    
+
     clearAuthData();
     if (logoutCallback) {
         logoutCallback();
@@ -39,10 +39,11 @@ const authAxiosInstance = axios.create({
 // Main axios instance with interceptors for regular API calls
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8880/api/v1',
-    withCredentials: true, 
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
+    maxCookieSize: 4096,  // Set maximum cookie size
 });
 
 // Helper function to check if request is auth-related
@@ -88,7 +89,7 @@ axiosInstance.interceptors.response.use(
                     // Reset refresh state on error
                     isRefreshing = false;
                     refreshPromise = null;
-                    
+
                     // If refresh token fails, perform complete logout
                     if (refreshError.response && refreshError.response.status === 401) {
                         await performLogout();
