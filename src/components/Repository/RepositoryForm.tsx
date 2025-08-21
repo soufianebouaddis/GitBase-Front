@@ -1,29 +1,29 @@
 import React, { useState } from 'react';
+import { useAppSelector } from '../../features/store';
+import { gitService } from '../../services/gitService';
+import type { createElement } from '@emotion/react';
+import type { createRepository } from '../../types/git';
 
 interface RepositoryFormProps {
-    onSubmit: (data: {
-        name: string;
-        description: string;
-        isPublic: boolean;
-        hasReadme: boolean;
-        gitignoreTemplate: string;
-        license: string;
-    }) => void;
+    onSubmit: (data: createRepository) => void;
 }
 
 export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        isPublic: true,
-        hasReadme: false,
-        gitignoreTemplate: 'No .gitignore',
-        license: 'No license'
+    const { user } = useAppSelector(state => state.auth);
+
+    const [formData, setFormData] = useState<createRepository>({
+        repoName: '',
+        isPrivate: true,
+        defaultBranch: "main"
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData);
+        gitService.createRepository({
+            ...formData,
+            username: user?.name
+        });
     };
 
     return (
@@ -41,9 +41,9 @@ export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
                         </label>
                         <input
                             type="text"
-                            id="name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            id="repoName"
+                            value={formData.repoName}
+                            onChange={(e) => setFormData({ ...formData, repoName: e.target.value })}
                             className="mt-1 block w-full rounded-lg bg-white/5 border border-gitbase-border-light/10 text-gitbase-text-primary 
                        shadow-sm focus:border-gitbase-primary focus:ring-gitbase-primary sm:text-sm px-4 py-2"
                             required
@@ -53,19 +53,18 @@ export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
                         </p>
                     </div>
 
-                    <div>
+                    {/* <div>
                         <label htmlFor="description" className="block text-sm font-medium text-gitbase-text-primary">
                             Description
                         </label>
                         <textarea
                             id="description"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            value={""}
                             rows={3}
                             className="mt-1 block w-full rounded-lg bg-white/5 border border-gitbase-border-light/10 text-gitbase-text-primary 
                        shadow-sm focus:border-gitbase-primary focus:ring-gitbase-primary sm:text-sm px-4 py-2"
                         />
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -83,20 +82,20 @@ export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
                         <div className="flex items-center space-x-4">
                             <button
                                 type="button"
-                                onClick={() => setFormData({ ...formData, isPublic: true })}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium ${formData.isPublic
-                                        ? 'bg-gitbase-primary text-white'
-                                        : 'bg-white/5 text-gitbase-text-primary hover:bg-white/10'
+                                onClick={() => setFormData({ ...formData, isPrivate: true })}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium ${formData.isPrivate
+                                    ? 'bg-gitbase-primary text-white'
+                                    : 'bg-white/5 text-gitbase-text-primary hover:bg-white/10'
                                     }`}
                             >
                                 Public
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setFormData({ ...formData, isPublic: false })}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium ${!formData.isPublic
-                                        ? 'bg-gitbase-primary text-white'
-                                        : 'bg-white/5 text-gitbase-text-primary hover:bg-white/10'
+                                onClick={() => setFormData({ ...formData, isPrivate: false })}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium ${!formData.isPrivate
+                                    ? 'bg-gitbase-primary text-white'
+                                    : 'bg-white/5 text-gitbase-text-primary hover:bg-white/10'
                                     }`}
                             >
                                 Private
@@ -104,7 +103,7 @@ export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                         <input
                             type="checkbox"
                             id="readme"
@@ -153,7 +152,7 @@ export const RepositoryForm: React.FC<RepositoryFormProps> = ({ onSubmit }) => {
                             <option>GNU GPLv3</option>
                             <option>BSD 3-Clause</option>
                         </select>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

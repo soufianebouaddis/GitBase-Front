@@ -42,8 +42,7 @@ const axiosInstance = axios.create({
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
-    },
-    maxCookieSize: 4096,  // Set maximum cookie size
+    }
 });
 
 // Helper function to check if request is auth-related
