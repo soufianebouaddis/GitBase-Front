@@ -85,9 +85,8 @@ export const authService = {
   // Refresh access token
   async refreshToken(): Promise<AuthResponse> {
     try {
-      const response = await axiosInstance.post<ApiResponse<AuthResponse>>('/auth/refresh');
+      const response = await axiosInstance.post<ApiResponse<AuthResponse>>('/auth/refreshToken');
       const authData = response.data.data
-
       return authData;
     } catch (error) {
     

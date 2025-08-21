@@ -2,17 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { checkAuthState } from '../../features/auth/authSlice';
+import { checkAuthState, getCurrentUser } from '../../features/auth/authSlice';
 import { authService } from '../../services/authService';
-import type { AppDispatch } from '../../features/store';
+import { useAppDispatch, useAppSelector, type AppDispatch } from '../../features/store';
 
 const OAuthCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const [isProcessing, setIsProcessing] = useState(true);
   const [message, setMessage] = useState('Completing your login...');
-
+    const dispatch = useAppDispatch();
+    const { user, loading, error } = useAppSelector(state => state.auth);
+    useEffect(() => {
+      // Only fetch if we don't already have user data
+      if (!user) {
+        dispatch(getCurrentUser());
+      }
+    }, [dispatch, user]);
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
@@ -50,7 +56,7 @@ const OAuthCallback: React.FC = () => {
           setMessage('Verifying authentication...');
           
           // Check if authentication was successful by verifying cookies
-          if (authService.isAuthenticated()) {
+          if (user) {
             // Redirect to success page instead of dashboard
             navigate('/auth/success');
             return;
@@ -59,7 +65,7 @@ const OAuthCallback: React.FC = () => {
           // If no tokens in cookies yet, wait a moment and try again
           setMessage('Finalizing authentication...');
           setTimeout(async () => {
-            if (authService.isAuthenticated()) {
+            if (user) {
               navigate('/auth/success');
             } else {
               setMessage('Authentication verification failed. Please try again.');
@@ -72,7 +78,7 @@ const OAuthCallback: React.FC = () => {
           
         } else {
           // No valid parameters found, but check if cookies indicate successful auth
-          if (authService.isAuthenticated()) {
+          if (user) {
             navigate('/auth/success');
             return;
           }

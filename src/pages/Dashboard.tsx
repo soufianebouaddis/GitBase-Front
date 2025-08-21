@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { use, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
-const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+import { getCurrentUser } from '../features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '../features/store';
 
+const Dashboard: React.FC = () => {
+  const { logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const { user, loading, error } = useAppSelector(state => state.auth);
+  useEffect(() => {
+    // Only fetch if we don't already have user data
+    if (!user) {
+      dispatch(getCurrentUser());
+    }
+  }, [dispatch, user]);
   const handleLogout = async () => {
     await logout();
     window.location.href = '/login';

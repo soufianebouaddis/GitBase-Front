@@ -10,7 +10,7 @@ const AuthContainer: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLoginPage = location.pathname === '/login';
-
+  
   const switchToRegister = () => navigate('/register');
   const switchToLogin = () => navigate('/login');
 

@@ -85,14 +85,14 @@ export const router = createBrowserRouter([
         element: <RegisterPage />
       },
 
-      {
-        path: "/auth/success",
-        element: <AuthSuccess />
-      },
-      {
-        path: "/auth/callback",
-        element: <OAuthCallback />
-      },
+      // {
+      //   path: "/auth/success",
+      //   element: <AuthSuccess />
+      // },
+      // {
+      //   path: "/auth/callback",
+      //   element: <OAuthCallback />
+      // },
       {
         path: "/not-allowed",
         element: <Error code={403} message="Not allowed to access this route" />
