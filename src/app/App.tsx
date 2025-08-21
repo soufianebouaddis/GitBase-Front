@@ -4,6 +4,7 @@ import LoginPage from '../pages/Login.tsx';
 import RegisterPage from '../pages/Register.tsx';
 import Dashboard from '../pages/Dashboard.tsx';
 import { NewRepository } from '../pages/NewRepository.tsx';
+import { Settings } from '../pages/Settings.tsx';
 import AuthSuccess from '../pages/AuthSuccess.tsx';
 import Error from '../components/Global/Error';
 import OAuthCallback from '../components/auth/OAuthCallback';
@@ -83,6 +84,10 @@ export const router = createBrowserRouter([
           {
             path: "/dashboard",
             element: <AuthCheck><Dashboard /></AuthCheck>
+          },
+          {
+            path: "/settings",
+            element: <AuthCheck><Settings /></AuthCheck>
           },
           {
             path: "/new",
